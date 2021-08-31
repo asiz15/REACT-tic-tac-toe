@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import Confetti from "react-confetti";
 
 export const Play = ({ players, turn, setTurn }) => {
 	const boardSchema = [
@@ -10,7 +11,8 @@ export const Play = ({ players, turn, setTurn }) => {
 	const [board, setBoard] = useState(boardSchema);
 	const [winner, setWinner] = useState({
 		arr: [],
-		is: false
+		is: false,
+		turn: null
 	});
 
 	useEffect(() => {
@@ -23,14 +25,14 @@ export const Play = ({ players, turn, setTurn }) => {
 		setBoard(matrix);
 
 		if (check.row(row).is) {
-			console.log("There is a winner Row");
 			setWinner({
 				arr: [
 					[row, 0],
 					[row, 1],
 					[row, 2]
 				],
-				is: true
+				is: true,
+				turn: turn
 			});
 		}
 		if (check.column(cell).is) {
@@ -41,7 +43,8 @@ export const Play = ({ players, turn, setTurn }) => {
 					[1, cell],
 					[2, cell]
 				],
-				is: true
+				is: true,
+				turn: turn
 			});
 		}
 		if (check.diagonal1()) {
@@ -52,7 +55,8 @@ export const Play = ({ players, turn, setTurn }) => {
 					[1, 1],
 					[2, 2]
 				],
-				is: true
+				is: true,
+				turn: turn
 			});
 		}
 		if (check.diagonal2()) {
@@ -63,17 +67,19 @@ export const Play = ({ players, turn, setTurn }) => {
 					[1, 1],
 					[0, 2]
 				],
-				is: true
+				is: true,
+				turn: turn
 			});
 		}
 
-		//switchTurn();
+		switchTurn();
 	};
 	const clearBoard = () => {
 		setBoard(boardSchema);
 		setWinner({
 			arr: [],
-			is: false
+			is: false,
+			turn: null
 		});
 	};
 	const switchTurn = () => {
@@ -92,12 +98,6 @@ export const Play = ({ players, turn, setTurn }) => {
 				is: column.every(cell => cell === turn),
 				colIndex: col
 			};
-		},
-		diagonals: function() {
-			return (
-				diagonal1().every(cell => cell === turn) ||
-				diagonal2().every(cell => cell === turn)
-			);
 		},
 		diagonal1: function() {
 			return diagonal1().every(cell => cell === turn);
@@ -123,38 +123,50 @@ export const Play = ({ players, turn, setTurn }) => {
 	};
 
 	return (
-		<div className="board pb-5" style={{ width: "600px" }}>
-			Turno {turn}
-			<button className="btn btn-primary" onClick={clearBoard}>
-				Clear board
-			</button>
-			Winner : {JSON.stringify(winner)}
-			{board.map((row, rowIndex) => {
-				return (
-					<div className="row" key={rowIndex}>
-						{row.map((cell, index) => {
-							return (
-								<button
-									disabled={cell !== null}
-									className={`col-4 cell ${
-										check.winnerCell(rowIndex, index)
-											? "cell--winner"
-											: ""
-									}`}
-									key={index}
-									onClick={() => selectCell(rowIndex, index)}>
-									<span>
-										{check.winnerCell(rowIndex, index)
-											? "G"
-											: ""}
-									</span>
-									<span>{cell}</span>
-								</button>
-							);
-						})}
+		<div className="p-0 m-0">
+			{!winner.is && <h3>It is {turn} turn!</h3>}
+			{winner.is && (
+				<Confetti width={1900} height={900} initialVelocityY={10} />
+			)}
+			{winner.is && winner.turn !== null && (
+				<div className="alert alert-success p-4 mb-3" role="alert">
+					<span style={{ fontSize: "2em" }}>
+						{players[`player${winner.turn}`]} ({winner.turn}) wins!
+					</span>
+					<div className="w-100 text-center mt-3">
+						<button
+							className="btn btn-primary"
+							onClick={clearBoard}>
+							Play again
+						</button>
 					</div>
-				);
-			})}
+				</div>
+			)}
+			<div className="board pb-5 px-3" style={{ width: "600px" }}>
+				{board.map((row, rowIndex) => {
+					return (
+						<div className="row" key={rowIndex}>
+							{row.map((cell, index) => {
+								return (
+									<button
+										disabled={cell !== null || winner.is}
+										className={`col-4 cell ${
+											check.winnerCell(rowIndex, index)
+												? "cell--winner"
+												: ""
+										}`}
+										key={index}
+										onClick={() =>
+											selectCell(rowIndex, index)
+										}>
+										<span>{cell}</span>
+									</button>
+								);
+							})}
+						</div>
+					);
+				})}
+			</div>
 		</div>
 	);
 };

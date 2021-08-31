@@ -18,7 +18,6 @@ export const GameView = () => {
 	return (
 		<div>
 			<h2>Tic tac toe React</h2>
-			{step}
 			<div>
 				{step === "pick" ? (
 					<Pick
